@@ -1,0 +1,9 @@
+info:
+  contact: {}
+paths:
+  /api/private/v1/login:
+    post:
+      produces:
+      - application/json
+      summary: 用户登录
+swagger: "2.0"
