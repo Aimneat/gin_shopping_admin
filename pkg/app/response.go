@@ -7,11 +7,6 @@ import (
 )
 
 func Response(c *gin.Context, httpCode int, errCode int, data interface{}) {
-	// c.JSON(httpCode, gin.H{
-	// 	"code": errCode,
-	// 	"msg":  e.GetMsg(errCode),
-	// 	"data": data,
-	// })
 	c.JSON(httpCode, gin.H{
 		"data": data,
 		"meta": gin.H{
