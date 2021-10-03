@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"gin-shop-admin/initialize"
 	"gin-shop-admin/models"
 	"gin-shop-admin/models/request"
 	"gin-shop-admin/pkg/app"
 	"gin-shop-admin/pkg/e"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -36,15 +36,13 @@ func JWTAuth() gin.HandlerFunc {
 		j := NewJWT()
 		// 这里jwt鉴权取头部信息 x-token 登录时回返回token信息 这里前端需要把token存储到cookie或者本地localStorage中 不过需要跟后端协商过期时间 可以约定刷新令牌或者重新登录
 		// token := c.Request.Header.Get("x-token")
-		token := c.Request.Header.Get("Authorization")
+		authourization := c.Request.Header.Get("Authorization")
+		token := strings.Replace(authourization, "Bearer ", "", 1)
 
 		if token == "" {
 			code = e.INVALID_PARAMS
 			data = "未登录或非法访问"
 		} else {
-
-			fmt.Println(token)
-
 			_, err := j.ParseToken(token)
 			if err != nil {
 				switch err {
@@ -111,5 +109,8 @@ func (j *JWT) GenerateToken(user models.User) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(j.JwtSecret)
+	// return token.SignedString(j.JwtSecret)
+	tokens, err := token.SignedString(j.JwtSecret)
+	tokens = "Bearer " + tokens
+	return tokens, err
 }
