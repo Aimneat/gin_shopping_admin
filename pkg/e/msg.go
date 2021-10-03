@@ -24,7 +24,8 @@ var MsgFlags = map[int]string{
 	ERROR_AUTH_CHECK_TOKEN_TIMEOUT: "token已超时",
 	ERROR_GENERATE_TOKEN_FAIL:      "token生成失败",
 
-	ERROR_GET_MENUS_ERROR: "获取左侧菜单失败",
+	ERROR_GET_MENUS_ERROR:      "获取左侧菜单失败",
+	ERROR_GET_CATEGORIES_ERROR: "获取分类列表失败",
 }
 
 func GetMsg(code int) string {
