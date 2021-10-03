@@ -12,11 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// func init() {
-// 	initialize.GormSetup()
-// 	initialize.ViperSetup()
-// }
-
 func main() {
 
 	initialize.ViperSetup()
@@ -32,12 +27,10 @@ func main() {
 	endPoint := fmt.Sprintf("%s:%s", initialize.TotalConfig.Server.Host, initialize.TotalConfig.Server.Port)
 
 	server := &http.Server{
-		Addr:         endPoint,
-		Handler:      router.InitRouter(),
-		ReadTimeout:  initialize.TotalConfig.Server.ReadTimeout,
-		WriteTimeout: initialize.TotalConfig.Server.WriteTimeout,
-		// ReadTimeout:    10000000,
-		// WriteTimeout:   10000000,
+		Addr:           endPoint,
+		Handler:        router.InitRouter(),
+		ReadTimeout:    initialize.TotalConfig.Server.ReadTimeout,
+		WriteTimeout:   initialize.TotalConfig.Server.WriteTimeout,
 		MaxHeaderBytes: 1 << 20,
 	}
 
