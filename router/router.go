@@ -26,6 +26,7 @@ func InitRouter() *gin.Engine {
 	apiv1.Use(middleware.JWTAuth())
 	{
 		apiv1.GET("/menus", v1.Menus)
+		apiv1.GET("/categories", v1.Categories)
 		//验证token
 		// apiv1.GET("/ping", user.CheckToken)
 
