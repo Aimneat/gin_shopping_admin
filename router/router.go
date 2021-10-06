@@ -27,6 +27,10 @@ func InitRouter() *gin.Engine {
 	{
 		apiv1.GET("/menus", v1.Menus)
 		apiv1.GET("/categories", v1.Categories)
+		apiv1.GET("/users", v1.Users)
+		apiv1.POST("/users", v1.AddUser)
+		apiv1.PUT("/users/:uId/state/:type", v1.UserStateChanged)
+
 		//验证token
 		// apiv1.GET("/ping", user.CheckToken)
 
