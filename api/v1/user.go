@@ -8,7 +8,9 @@ import (
 	"gin-shop-admin/pkg/e"
 	"gin-shop-admin/pkg/util"
 	"gin-shop-admin/service"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,14 +19,7 @@ import (
 // 	Login(c *gin.Context)
 // 	LoginOut(c *gin.Context)
 // 	Register(c *gin.Context)
-
 // 	CheckToken(c *gin.Context)
-
-// 	MyInformation(c *gin.Context)
-// }
-
-// type UserManager struct {
-// 	DB *gorm.DB
 // }
 
 // CheckToken 用户详情
@@ -92,7 +87,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	exist, err := service.ExistUserByUsername(rUser.Username)
+	_, exist, err := service.ExistUserByUsername(rUser.Username)
 	if err != nil {
 		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
 		return
@@ -128,23 +123,146 @@ func Register(c *gin.Context) {
 	})
 }
 
-// func (u UserManager) MyInformation(c *gin.Context) {
-// 	id := c.Param("id")
+func Users(c *gin.Context) {
+	// query := c.DefaultQuery("query", "3")
+	pagenum := c.DefaultQuery("pagenum", "1")
+	pagesize := c.DefaultQuery("pagesize", "5")
+	var offsetNum = 0
+	//to do: 需要验证数据的正确性
 
-// 	var user models.User
+	pnum, err := strconv.Atoi(pagenum)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USERS_FAIL, nil)
+		return
+	}
+	size, err := strconv.Atoi(pagesize)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USERS_FAIL, nil)
+		return
+	}
+	if pnum > 0 {
+		offsetNum = (pnum - 1) * size
+	}
 
-// 	err := u.DB.Preload("Orders").Where("id = ?", id).First(&user).Error
-// 	if err != nil && err != gorm.ErrRecordNotFound {
-// 		// app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
-// 		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
-// 		return
-// 	}
+	usersList, err := service.GetAllUsers()
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USERS_FAIL, nil)
+		return
+	}
 
-// 	app.Response(c, http.StatusOK, e.SUCCESS, gin.H{"user": user})
-// }
+	listLength := math.Min(float64(len(usersList)), float64(offsetNum+size))
+	data := gin.H{
+		"users": usersList[offsetNum:int(listLength):int(listLength)],
+		"totle": len(usersList),
+	}
+	app.Response(c, http.StatusOK, e.SUCCESS,
+		data,
+	)
+}
 
-// func NewUserManager() IUser {
-// 	db := models.GetDB()
-// 	db.AutoMigrate(&models.User{})
-// 	return UserManager{DB: db}
-// }
+func AddUser(c *gin.Context) {
+	var ruser request.AddUser
+	err := c.ShouldBind(&ruser)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_ADD_USER_FAIL, nil)
+		return
+	}
+
+	//todo ：需要验证数据正确性
+
+	_, exist, err := service.ExistUserByUsername(ruser.Username)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_ADD_USER_FAIL, nil)
+		return
+	}
+	if exist == true {
+		app.Response(c, http.StatusOK, e.ERROR_ADD_EXIST_USER, nil)
+		return
+	}
+
+	password, err := util.SetPassword(ruser.Username)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_ADD_USER_FAIL, nil)
+		return
+	}
+	user := models.User{
+		Username: ruser.Username,
+		Password: password,
+		Email:    ruser.Email,
+		Mobile:   ruser.Mobile,
+		RolesID:  4, //默认为游客
+	}
+
+	err = service.CreateUser(user)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_ADD_USER_FAIL, nil)
+		return
+	}
+
+	user, exist, err = service.ExistUserByUsername(ruser.Username)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
+		return
+	}
+	if exist == false {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_ADD_USER_FAIL, nil)
+		return
+	}
+	app.Response(c, http.StatusCreated, e.CREATED_SUCCESS, gin.H{
+		"id":          user.ID,
+		"username":    user.Username,
+		"mobile":      user.Mobile,
+		"type":        user.Type,
+		"openid":      "",
+		"email":       user.Email,
+		"create_time": user.CreatedAt,
+		"modify_time": user.UpdatedAt,
+		"is_delete":   user.DeletedAt != nil,
+		"is_active":   user.IsActive,
+	})
+
+}
+
+func UserStateChanged(c *gin.Context) {
+	uid := c.Param("uId")
+	mgState := c.Param("type")
+
+	//todo ：需要验证数据正确性
+
+	id, err := strconv.Atoi(uid)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_UPDATE_USER_FAIL, nil)
+		return
+	}
+
+	user, exist, err := service.GetUserById(uint(id))
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
+		return
+	}
+	if exist == false {
+		app.Response(c, http.StatusOK, e.ERROR_NOT_EXIST_USER, nil)
+		return
+	}
+
+	user.MgState, err = strconv.ParseBool(mgState)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_UPDATE_USER_FAIL, nil)
+		return
+	}
+
+	err = service.UpdateUser(user)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_UPDATE_USER_FAIL, nil)
+		return
+	}
+
+	app.Response(c, http.StatusOK, e.SUCCESS, gin.H{
+		"id":       user.ID,
+		"rid":      user.RolesID,
+		"username": user.Username,
+		"mobile":   user.Mobile,
+		"email":    user.Email,
+		"mg_state": user.MgState,
+	})
+}
