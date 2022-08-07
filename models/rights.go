@@ -1,12 +1,16 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import "time"
 
 type Rights struct {
-	gorm.Model
-	AuthName string //权限说明
-	Level    string //权限层级
-	Pid      uint   //父权限id
-	Path     string //对应访问路径
-	Children []Rights
+	ID        uint `json:"id" gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+	AuthName  string     `json:"authName"` //权限说明
+	Level     string     `json:"level"`    //权限层级
+	Pid       uint       `json:"pid"`      //父权限id
+	Path      string     `json:"path"`     //对应访问路径
+	Children  []Rights   `json:"children"`
+	Roles     []Roles
 }

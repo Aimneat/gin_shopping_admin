@@ -31,7 +31,7 @@ func GetAllCategories() (categoriesList []response.Categories, err error) {
 			CategoriesName:    v.CategoriesName,
 			CategoriesPid:     v.CategoriesPid,
 			CatgoriesLevel:    v.CatgoriesLevel,
-			CategoriesDeleted: false, //这里写死，本应需要判断
+			CategoriesDeleted: v.DeletedAt != nil,
 			Children:          nil,
 		}
 		categoriesTreeMap[v.CategoriesPid] = append(categoriesTreeMap[v.CategoriesPid], categoriesMap)

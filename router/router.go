@@ -27,10 +27,24 @@ func InitRouter() *gin.Engine {
 	{
 		apiv1.GET("/menus", v1.Menus)
 		apiv1.GET("/categories", v1.Categories)
-		apiv1.GET("/users", v1.Users)
-		apiv1.POST("/users", v1.AddUser)
-		apiv1.PUT("/users/:uId/state/:type", v1.UserStateChanged)
+		apiv1.POST("/categories", v1.AddCategories)
 
+		apiv1.GET("/users", v1.Users)
+		apiv1.GET("/users/:id", v1.GetUserById)
+		apiv1.PUT("/users/:id", v1.EditUser)
+		apiv1.PUT("/user/:uId/state/:type", v1.UserStateChanged)
+		apiv1.POST("/users", v1.AddUser)
+		apiv1.DELETE("/users/:id", v1.DeleteUser)
+
+		apiv1.GET("/roles", v1.GetAllRoles)
+		apiv1.GET("/roles/:id", v1.GetRoleByID)
+		apiv1.PUT("/roles/:id", v1.EditRole)
+		apiv1.DELETE("/roles/:id", v1.DeleteRole)
+		apiv1.POST("/roles", v1.AddRoles)
+		apiv1.POST("/roles/:roleId/rights", v1.AllotRights)
+		apiv1.DELETE("/role/:roleId/rights/:rightId", v1.RemoveRight)
+
+		apiv1.GET("/rights/:type", v1.GetRights)
 		//验证token
 		// apiv1.GET("/ping", user.CheckToken)
 

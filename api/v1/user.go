@@ -124,7 +124,7 @@ func Register(c *gin.Context) {
 }
 
 func Users(c *gin.Context) {
-	// query := c.DefaultQuery("query", "3")
+	query := c.DefaultQuery("query", "") //字符串搜索
 	pagenum := c.DefaultQuery("pagenum", "1")
 	pagesize := c.DefaultQuery("pagesize", "5")
 	var offsetNum = 0
@@ -144,7 +144,7 @@ func Users(c *gin.Context) {
 		offsetNum = (pnum - 1) * size
 	}
 
-	usersList, err := service.GetAllUsers()
+	usersList, err := service.GetAllUsers(query)
 	if err != nil {
 		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USERS_FAIL, nil)
 		return
@@ -265,4 +265,109 @@ func UserStateChanged(c *gin.Context) {
 		"email":    user.Email,
 		"mg_state": user.MgState,
 	})
+}
+
+func EditUser(c *gin.Context) {
+	uid := c.Param("id")
+	var ruser request.EditUser
+	err := c.ShouldBind(&ruser)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_UPDATE_USER_FAIL, nil)
+		return
+	}
+
+	//todo ：需要验证数据正确性
+
+	id, err := strconv.Atoi(uid)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_UPDATE_USER_FAIL, nil)
+		return
+	}
+
+	user, exist, err := service.GetUserById(uint(id))
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
+		return
+	}
+	if exist == false {
+		app.Response(c, http.StatusOK, e.ERROR_NOT_EXIST_USER, nil)
+		return
+	}
+
+	user.Mobile = ruser.Mobile
+	user.Email = ruser.Email
+
+	err = service.UpdateUser(user)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_UPDATE_USER_FAIL, nil)
+		return
+	}
+
+	app.Response(c, http.StatusOK, e.SUCCESS, gin.H{
+		"id":       user.ID,
+		"rid":      user.RolesID,
+		"username": user.Username,
+		"mobile":   user.Mobile,
+		"email":    user.Email,
+	})
+}
+
+func GetUserById(c *gin.Context) {
+	uid := c.Param("id")
+
+	//todo ：需要验证数据正确性
+
+	id, err := strconv.Atoi(uid)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_UPDATE_USER_FAIL, nil)
+		return
+	}
+
+	user, exist, err := service.GetUserById(uint(id))
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
+		return
+	}
+	if exist == false {
+		app.Response(c, http.StatusOK, e.ERROR_NOT_EXIST_USER, nil)
+		return
+	}
+
+	app.Response(c, http.StatusOK, e.SUCCESS, gin.H{
+		"id":       user.ID,
+		"rid":      user.RolesID,
+		"username": user.Username,
+		"mobile":   user.Mobile,
+		"email":    user.Email,
+	})
+}
+
+func DeleteUser(c *gin.Context) {
+	uid := c.Param("id")
+
+	//todo ：需要验证数据正确性
+
+	id, err := strconv.Atoi(uid)
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_DELETE_USER_FAIL, nil)
+		return
+	}
+
+	_, exist, err := service.GetUserById(uint(id))
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_USER_FAIL, nil)
+		return
+	}
+	if exist == false {
+		app.Response(c, http.StatusOK, e.ERROR_NOT_EXIST_USER, nil)
+		return
+	}
+
+	err = service.DeleteUserById(uint(id))
+	if err != nil {
+		app.Response(c, http.StatusInternalServerError, e.ERROR_DELETE_USER_FAIL, nil)
+		return
+	}
+
+	app.Response(c, http.StatusOK, e.SUCCESS, nil)
 }

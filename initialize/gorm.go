@@ -30,6 +30,10 @@ func GormSetup() *gorm.DB {
 	if err != nil {
 		log.Fatalf("models.Setup err: %v", err)
 	}
+	if TotalConfig.Server.RunMode == "debug" {
+		db.LogMode(true)
+	}
+
 	return db
 }
 
@@ -43,6 +47,7 @@ func MysqlTables(db *gorm.DB) {
 		&models.User{},
 		&models.Rights{},
 		&models.Categories{},
+		&models.Roles{},
 	)
 	// if err != nil {
 	// 	// global.GSA_LOG.Error("register table failed", zap.Any("err", err))

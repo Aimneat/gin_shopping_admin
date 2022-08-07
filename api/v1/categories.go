@@ -26,12 +26,12 @@ func Categories(c *gin.Context) {
 
 	pnum, err := strconv.Atoi(pagenum)
 	if err != nil {
-		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_CATEGORIES_ERROR, nil)
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_CATEGORIES_FAIL, nil)
 		return
 	}
 	size, err := strconv.Atoi(pagesize)
 	if err != nil {
-		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_CATEGORIES_ERROR, nil)
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_CATEGORIES_FAIL, nil)
 		return
 	}
 	if pnum > 0 {
@@ -40,7 +40,7 @@ func Categories(c *gin.Context) {
 
 	categoriesList, err := service.GetAllCategories()
 	if err != nil {
-		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_CATEGORIES_ERROR, nil)
+		app.Response(c, http.StatusInternalServerError, e.ERROR_GET_CATEGORIES_FAIL, nil)
 		return
 	}
 
@@ -52,4 +52,8 @@ func Categories(c *gin.Context) {
 	app.Response(c, http.StatusOK, e.SUCCESS,
 		data,
 	)
+}
+
+func AddCategories(c *gin.Context) {
+
 }
